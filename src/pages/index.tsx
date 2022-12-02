@@ -1,7 +1,7 @@
 const axios = require("axios");
 const BigNumber = require("bignumber.js");
 import styles from "./index.less";
-import { Input, Form, Button, Select, Checkbox, Row, Col } from "antd";
+import { Input, Form, Button, Select, Radio, Row, Col } from "antd";
 const { Item } = Form;
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Web3 from "web3";
@@ -9,6 +9,7 @@ import Web3Modal from "web3modal";
 const cTokenAbi = require("./CErc20.json");
 const erc20Abi = require("./erc20.json");
 const storemanAbi = require("./abi.StoremanGroupDelegate.json");
+import type { RadioChangeEvent } from "antd";
 
 const approveAmount =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -82,6 +83,11 @@ const allTokens: any = {
       cToken: "0xff10c4394dbbd786d639166163861e8636899124",
       decimals: 6,
     },
+    PHX: {
+      address: "0xf17c59bf0f6326da7a8cc2ce417e4f53a26707bd",
+      cToken: "0x3c2edaa754cbc179cec5659483f336c8af303749",
+      decimals: 18,
+    },
   },
 };
 
@@ -115,8 +121,8 @@ export default function IndexPage() {
   const [address, setAddress] = useState("0x0");
   const [networkId, setNetworkId] = useState(WANCHAIN_MAIN_NET);
   const [web3, setWeb3] = useState(new Web3());
-  const [withdrawChecked, setWithdraw] = useState(true);
-  const [crossChecked, setCross] = useState(false);
+  const [actionValue, setAction] = useState("liquidate");
+  const [repayChecked, setCross] = useState(false);
   const [tokens, setTokens] = useState(allTokens["wanchain"]);
   const [form] = Form.useForm();
 
@@ -154,7 +160,11 @@ export default function IndexPage() {
       let payToken = tokens[payTokenSym].address;
       let payCToken = tokens[payTokenSym].cToken;
       let decimals = tokens[payTokenSym].decimals;
-      let cTokenSupply = tokens[backTokenSym].cToken;
+      let cTokenSupply = null;
+
+      if (actionValue === "liquidate") {
+        cTokenSupply = tokens[backTokenSym].cToken;
+      }
 
       let borrower = form.getFieldValue("borrower");
       let amount = form.getFieldValue("amount");
@@ -174,9 +184,15 @@ export default function IndexPage() {
           .send({ from: address });
       }
       const cTokenSc = new web3.eth.Contract(cTokenAbi, payCToken);
-      tx = await cTokenSc.methods
-        .liquidateBorrow(borrower, amountWei, cTokenSupply)
-        .send({ from: address, gas: GAS_LIMIT });
+      if (actionValue === "liquidate") {
+        tx = await cTokenSc.methods
+          .liquidateBorrow(borrower, amountWei, cTokenSupply)
+          .send({ from: address, gas: GAS_LIMIT });
+      } else if (actionValue === "repay") {
+        tx = await cTokenSc.methods
+          .repayBorrowBehalf(borrower, amountWei)
+          .send({ from: address, gas: GAS_LIMIT });
+      }
       console.log("tx:", tx);
     } catch (e) {
       console.log(e);
@@ -209,14 +225,10 @@ export default function IndexPage() {
     });
   }
 
-  function withdrawChange(e: any) {
+  function radioChange(e: RadioChangeEvent) {
     // console.log(e.target);
-    setWithdraw(e.target.checked);
-  }
-
-  function crossChange(e: any) {
-    // console.log(e.target);
-    setCross(e.target.checked);
+    console.log("radio checked", e.target.value);
+    setAction(e.target.value);
   }
 
   return (
@@ -236,54 +248,23 @@ export default function IndexPage() {
             span: 2,
           }}
           initialValues={{
-            actions: ["withdraw"],
+            actions: "liquidate",
           }}
           onFinish={onFinish}
           wrapperCol={{
             span: 16,
           }}
         >
-          {/* <Item
-            label="Chain"
-            name="chain"
-            rules={[{ required: true, message: 'Please select chain' }]}
-          >
-            <Select
-              showSearch
-              options={chainList}
-              onSelect={onSelectChain}
-            ></Select>
-          </Item> */}
-          {/* <Item name="actions" label="Actions">
-            <Row>
-              <Col span={100}>
-                <Checkbox
-                  name="withdraw"
-                  checked={withdrawChecked}
-                  onChange={withdrawChange}
-                  style={{
-                    lineHeight: '32px',
-                  }}
-                >
-                  Withdraw
-                </Checkbox>
-              </Col>
-              <Col span={100}>
-                <Checkbox
-                  name="cross"
-                  checked={crossChecked}
-                  onChange={crossChange}
-                  style={{
-                    lineHeight: '32px',
-                  }}
-                >
-                  Cross-chain
-                </Checkbox>
-              </Col>
-            </Row>
-          </Item> */}
+          <div>
+            <Item name="actions" label="Actions">
+              <Radio.Group onChange={radioChange} value={actionValue}>
+                <Radio value={"liquidate"}>Liquidate</Radio>
+                <Radio value={"repay"}>Repay Behalf</Radio>
+              </Radio.Group>
+            </Item>
+          </div>
           <Item
-            label="Pay Token"
+            label="Repay"
             name="payToken"
             rules={[{ required: true, message: "Please select token to pay" }]}
           >
@@ -294,22 +275,25 @@ export default function IndexPage() {
             ></Select>
           </Item>
 
+          {actionValue === "liquidate" ? (
+            <Item
+              label="Collateral"
+              name="backToken"
+              rules={[
+                { required: true, message: "Please select token to get back" },
+              ]}
+            >
+              <Select
+                showSearch
+                options={getTokenList("wanchain")}
+                onSelect={onSelectBackToken}
+              ></Select>
+            </Item>
+          ) : (
+            ""
+          )}
           <Item
-            label="Back Token"
-            name="backToken"
-            rules={[
-              { required: true, message: "Please select token to get back" },
-            ]}
-          >
-            <Select
-              showSearch
-              options={getTokenList("wanchain")}
-              onSelect={onSelectBackToken}
-            ></Select>
-          </Item>
-
-          <Item
-            label="Borrow"
+            label="Borrower"
             name="borrower"
             rules={[{ required: true, message: "The borrower to liquidate" }]}
           >
