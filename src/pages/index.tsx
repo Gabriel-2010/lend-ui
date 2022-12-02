@@ -169,8 +169,10 @@ export default function IndexPage() {
       let borrower = form.getFieldValue("borrower");
       let amount = form.getFieldValue("amount");
       console.log(payToken, payCToken, cTokenSupply, borrower, amount);
+      console.log("type of amount", typeof amount);
 
-      let amountWei = new BigNumber(amount).times(10 ** decimals);
+      let amountWei = new BigNumber(amount).times(10 ** decimals).toString(10);
+      console.log("type of amount", typeof amountWei, amountWei);
 
       let tx: any;
 
@@ -178,17 +180,19 @@ export default function IndexPage() {
       let approved = await erc20Sc.methods.allowance(address, payCToken).call();
       console.log("approved", approved);
       if (BigNumber(approved).eq(0)) {
-        console.log("try to approve");
+        console.log("Try to approve...");
         tx = await erc20Sc.methods
           .approve(payCToken, approveAmount)
           .send({ from: address });
       }
       const cTokenSc = new web3.eth.Contract(cTokenAbi, payCToken);
       if (actionValue === "liquidate") {
+        console.log("Try to liquidate...")
         tx = await cTokenSc.methods
           .liquidateBorrow(borrower, amountWei, cTokenSupply)
           .send({ from: address, gas: GAS_LIMIT });
       } else if (actionValue === "repay") {
+        console.log("Try to repay...")
         tx = await cTokenSc.methods
           .repayBorrowBehalf(borrower, amountWei)
           .send({ from: address, gas: GAS_LIMIT });
