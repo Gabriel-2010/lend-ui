@@ -41,7 +41,7 @@ const web3Modal = new Web3Modal({
   providerOptions, // required
 });
 
-const allTokens: any = {
+const allTokenV2: any = {
   wanchain: {
     WAND: {
       address: "0x230f0c01b8e2c027459781e6a56da7e1876efdbe",
@@ -91,6 +91,58 @@ const allTokens: any = {
   },
 };
 
+const allTokenV1: any = {
+  wanchain: {
+    WAND: {
+      address: "0x230f0c01b8e2c027459781e6a56da7e1876efdbe",
+      cToken: "0x6b4b51cce4978c890e48080096ea915c885ccabf",
+      decimals: 18,
+    },
+    wanXRP: {
+      address: "0xf665E0e3E75D16466345E1129530ec28839EfaEa",
+      cToken: "0xacc0475893b5e0596479c5a45c9477d418be6da6",
+      decimals: 6,
+    },
+    wanBTC: {
+      address: "0x50c439B6d602297252505a6799d84eA5928bCFb6",
+      cToken: "0x040007866aa406908c70f7da53425cae191a9a46",
+      decimals: 8,
+    },
+    wanETH: {
+      address: "0xE3aE74D1518A76715aB4C7BeDF1af73893cd435A",
+      cToken: "0x915059e4917d6c2f76b6cc37868cc4d61bc0c7a5",
+      decimals: 18,
+    },
+    wanUSDT: {
+      address: "0x11e77E27Af5539872efEd10abaA0b408cfd9fBBD",
+      cToken: "0x86d6aa06b2649a68b59cd76e0195dbd26c5c6c48",
+      decimals: 6,
+    },
+    wanUSDC: {
+      address: "0x52a9cea01c4cbdd669883e41758b8eb8e8e2b34b",
+      cToken: "0x53c8882b2ce3fe05b871392faacf32ec051dffec",
+      decimals: 6,
+    },
+    wanLTC: {
+      address: "0xd8e7bd03920ba407d764789b11dd2b5eaee0961e",
+      cToken: "0x8557802730a293144748c784b9bb5e259619034c",
+      decimals: 6,
+    },
+    wanDOGE: {
+      address: "0xd3a33c6fea7f785ddc0915f6a76919c11abded45",
+      cToken: "0xff10c4394dbbd786d639166163861e8636899124",
+      decimals: 6,
+    },
+    PHX: {
+      address: "0xf17c59bf0f6326da7a8cc2ce417e4f53a26707bd",
+      cToken: "0x3c2edaa754cbc179cec5659483f336c8af303749",
+      decimals: 18,
+    },
+  },
+};
+
+const allTokens = allTokenV2;
+
 function getTokenList(chain: string) {
   return Object.keys(allTokens[chain]).map((i) => {
     return { label: i, value: i };
@@ -122,6 +174,7 @@ export default function IndexPage() {
   const [networkId, setNetworkId] = useState(WANCHAIN_MAIN_NET);
   const [web3, setWeb3] = useState(new Web3());
   const [actionValue, setAction] = useState("liquidate");
+  const [versionValue, setVersion] = useState("v2");
   const [repayChecked, setCross] = useState(false);
   const [tokens, setTokens] = useState(allTokens["wanchain"]);
   const [form] = Form.useForm();
@@ -235,6 +288,12 @@ export default function IndexPage() {
     setAction(e.target.value);
   }
 
+  function versionChange(e: RadioChangeEvent) {
+    // console.log(e.target);
+    console.log("version checked", e.target.value);
+    setVersion(e.target.value);
+  }
+
   return (
     <div className={styles.frame}>
       <div className={styles["normal-head"]}>
@@ -259,6 +318,14 @@ export default function IndexPage() {
             span: 16,
           }}
         >
+          <div>
+            <Item name="version" label="Version">
+              <Radio.Group onChange={versionChange} value={versionValue}>
+                <Radio value={"v1"}>V1</Radio>
+                <Radio value={"v2"}>V2</Radio>
+              </Radio.Group>
+            </Item>
+          </div>
           <div>
             <Item name="actions" label="Actions">
               <Radio.Group onChange={radioChange} value={actionValue}>
