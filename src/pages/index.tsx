@@ -8,22 +8,12 @@ import Web3 from "web3";
 import Web3Modal from "web3modal";
 const cTokenAbi = require("./CErc20.json");
 const erc20Abi = require("./erc20.json");
-const storemanAbi = require("./abi.StoremanGroupDelegate.json");
+const reservedAbi = require("./reservedAbi.json");
 import type { RadioChangeEvent } from "antd";
 
 const approveAmount = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
-const NONE_ADDRESS = "0xbad";
-const STOREMAN_SC = "0x1E7450D5d17338a348C5438546f0b4D0A5fbeaB6";
-const SWAP_ROBOT_SC: any = {
-  wanchain: "0xc58D5Eab2F62B259BacF8B6C19d19e192BF84dCc",
-  moonriver: "0xeCe07b3450993306e1fb961dcdE279A9e6b99d67",
-};
-
-const CROSS_SC: any = {
-  wanchain: "0xe85b0D89CbC670733D6a40A9450D8788bE13da47",
-  moonriver: "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
-};
+const RESERVED_CONTRACT = "0x58244533df1F808eD65Aca17897f9759427174b0";
 
 const GAS_LIMIT = "0x" + Number(500000).toString(16);
 
@@ -159,6 +149,7 @@ function ascii2String(str: string) {
 export default function IndexPage() {
   const [payTokenSym, setPayToken] = useState("");
   const [backTokenSym, setBackToken] = useState("");
+  const [reservedTokenSym, setReservedToken] = useState("");
   const [chain, setChain] = useState("wanchain");
   const [connected, setConnected] = useState(false);
   const [address, setAddress] = useState("0x0");
@@ -191,6 +182,10 @@ export default function IndexPage() {
     setBackToken(item);
   }
 
+  async function onSelectReservedToken(item: string) {
+    setReservedToken(item);
+  }
+
   function onSelectChain(item: string) {
     setChain(item);
     setTokens(allTokenV2[item]);
@@ -204,43 +199,65 @@ export default function IndexPage() {
     return Math.floor((ret.data.medium_fee_per_kb / 1024) * 303).toString();
   }
 
+  async function getReservedToken() {
+    let cToken = tokens[reservedTokenSym].cToken;
+    let decimals = tokens[reservedTokenSym].decimals;
+    let amount = form.getFieldValue("amount");
+    console.log(cToken, amount);
+    console.log("type of amount", typeof amount);
+
+    let amountWei = new BigNumber(amount).times(10 ** decimals).toString(10);
+    console.log("type of amount", typeof amountWei, amountWei);
+
+    let tx: any;
+
+    const cTokenSc = new web3.eth.Contract(reservedAbi, RESERVED_CONTRACT);
+    console.log("Try to get reserved fund...");
+    tx = await cTokenSc.methods.withdrawReserves(cToken, amountWei).send({ from: address, gas: GAS_LIMIT });
+    console.log("tx:", tx);
+  }
+
   async function onFinish() {
     try {
-      let payToken = tokens[payTokenSym].address;
-      let payCToken = tokens[payTokenSym].cToken;
-      let decimals = tokens[payTokenSym].decimals;
-      let cTokenSupply = null;
+      if (actionValue === "reserve") {
+        await getReservedToken();
+      } else {
+        let payToken = tokens[payTokenSym].address;
+        let payCToken = tokens[payTokenSym].cToken;
+        let decimals = tokens[payTokenSym].decimals;
+        let cTokenSupply = null;
 
-      if (actionValue === "liquidate") {
-        cTokenSupply = tokens[backTokenSym].cToken;
+        if (actionValue === "liquidate") {
+          cTokenSupply = tokens[backTokenSym].cToken;
+        }
+
+        let borrower = form.getFieldValue("borrower");
+        let amount = form.getFieldValue("amount");
+        console.log(payToken, payCToken, cTokenSupply, borrower, amount);
+        console.log("type of amount", typeof amount);
+
+        let amountWei = new BigNumber(amount).times(10 ** decimals).toString(10);
+        console.log("type of amount", typeof amountWei, amountWei);
+
+        let tx: any;
+
+        const erc20Sc = new web3.eth.Contract(erc20Abi, payToken);
+        let approved = await erc20Sc.methods.allowance(address, payCToken).call();
+        console.log("approved", approved);
+        if (BigNumber(approved).eq(0)) {
+          console.log("Try to approve...");
+          tx = await erc20Sc.methods.approve(payCToken, approveAmount).send({ from: address });
+        }
+        const cTokenSc = new web3.eth.Contract(cTokenAbi, payCToken);
+        if (actionValue === "liquidate") {
+          console.log("Try to liquidate...");
+          tx = await cTokenSc.methods.liquidateBorrow(borrower, amountWei, cTokenSupply).send({ from: address, gas: GAS_LIMIT });
+        } else if (actionValue === "repay") {
+          console.log("Try to repay...");
+          tx = await cTokenSc.methods.repayBorrowBehalf(borrower, amountWei).send({ from: address, gas: GAS_LIMIT });
+        }
+        console.log("tx:", tx);
       }
-
-      let borrower = form.getFieldValue("borrower");
-      let amount = form.getFieldValue("amount");
-      console.log(payToken, payCToken, cTokenSupply, borrower, amount);
-      console.log("type of amount", typeof amount);
-
-      let amountWei = new BigNumber(amount).times(10 ** decimals).toString(10);
-      console.log("type of amount", typeof amountWei, amountWei);
-
-      let tx: any;
-
-      const erc20Sc = new web3.eth.Contract(erc20Abi, payToken);
-      let approved = await erc20Sc.methods.allowance(address, payCToken).call();
-      console.log("approved", approved);
-      if (BigNumber(approved).eq(0)) {
-        console.log("Try to approve...");
-        tx = await erc20Sc.methods.approve(payCToken, approveAmount).send({ from: address });
-      }
-      const cTokenSc = new web3.eth.Contract(cTokenAbi, payCToken);
-      if (actionValue === "liquidate") {
-        console.log("Try to liquidate...");
-        tx = await cTokenSc.methods.liquidateBorrow(borrower, amountWei, cTokenSupply).send({ from: address, gas: GAS_LIMIT });
-      } else if (actionValue === "repay") {
-        console.log("Try to repay...");
-        tx = await cTokenSc.methods.repayBorrowBehalf(borrower, amountWei).send({ from: address, gas: GAS_LIMIT });
-      }
-      console.log("tx:", tx);
     } catch (e) {
       console.log(e);
     }
@@ -304,7 +321,7 @@ export default function IndexPage() {
           }}
           initialValues={{
             actions: "liquidate",
-            version: "v2"
+            version: "v2",
           }}
           onFinish={onFinish}
           wrapperCol={{
@@ -324,12 +341,17 @@ export default function IndexPage() {
               <Radio.Group onChange={radioChange} value={actionValue}>
                 <Radio value={"liquidate"}>Liquidate</Radio>
                 <Radio value={"repay"}>Repay Behalf</Radio>
+                <Radio value={"reserve"}>Get Reserved Fund</Radio>
               </Radio.Group>
             </Item>
           </div>
-          <Item label="Repay" name="payToken" rules={[{ required: true, message: "Please select token to pay" }]}>
-            <Select showSearch options={getTokenList("wanchain")} onSelect={onSelectPayToken}></Select>
-          </Item>
+          {actionValue !== "reserve" ? (
+            <Item label="Repay" name="payToken" rules={[{ required: true, message: "Please select token to pay" }]}>
+              <Select showSearch options={getTokenList("wanchain")} onSelect={onSelectPayToken}></Select>
+            </Item>
+          ) : (
+            ""
+          )}
 
           {actionValue === "liquidate" ? (
             <Item label="Collateral" name="backToken" rules={[{ required: true, message: "Please select token to get back" }]}>
@@ -338,9 +360,21 @@ export default function IndexPage() {
           ) : (
             ""
           )}
-          <Item label="Borrower" name="borrower" rules={[{ required: true, message: "The borrower to liquidate" }]}>
-            <Input />
-          </Item>
+          {actionValue !== "reserve" ? (
+            <Item label="Borrower" name="borrower" rules={[{ required: true, message: "The borrower to liquidate" }]}>
+              <Input />
+            </Item>
+          ) : (
+            ""
+          )}
+
+          {actionValue === "reserve" ? (
+            <Item label="Token" name="reserveToken" rules={[{ required: true, message: "Please select token to get" }]}>
+              <Select showSearch options={getTokenList("wanchain")} onSelect={onSelectReservedToken}></Select>
+            </Item>
+          ) : (
+            ""
+          )}
 
           <Item label="Amount" name="amount" rules={[{ required: true, message: "Please input amount to pay" }]}>
             <Input />
