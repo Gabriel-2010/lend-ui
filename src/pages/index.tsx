@@ -15,7 +15,7 @@ const approveAmount = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
 const RESERVED_CONTRACT = "0x58244533df1F808eD65Aca17897f9759427174b0";
 
-const GAS_LIMIT = "0x" + Number(500000).toString(16);
+const GAS_LIMIT = "0x" + Number(1000000).toString(16);
 
 const providerOptions = {
   /* See Provider Options Section */
