@@ -77,6 +77,11 @@ const allTokenV2: any = {
       cToken: "0x3c2edaa754cbc179cec5659483f336c8af303749",
       decimals: 18,
     },
+    wanGLMR: {
+      address: "0x3251495c721EbfF6Ca4376c97215d7013a50C3aE",
+      cToken: "0x3223568BcCAaeC5a10C0D5e8f8aF6fc72D17a6c8",
+      decimals: 18,
+    },
   },
 };
 
