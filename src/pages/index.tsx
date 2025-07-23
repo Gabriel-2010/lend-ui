@@ -11,7 +11,8 @@ const erc20Abi = require("./erc20.json");
 const reservedAbi = require("./reservedAbi.json");
 import type { RadioChangeEvent } from "antd";
 
-const approveAmount = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+const approveAmount =
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
 const RESERVED_CONTRACT = "0x58244533df1F808eD65Aca17897f9759427174b0";
 
@@ -30,8 +31,55 @@ const web3Modal = new Web3Modal({
   providerOptions, // required
 });
 
-const allTokenV2: any = {
-  wanchain: {
+const allToken: any = {
+  v1: {
+    wanUSDT: {
+      address: "0x11e77E27Af5539872efEd10abaA0b408cfd9fBBD",
+      cToken: "0xff39b35474c83f2552b0463d664dd12da5d083cf",
+      decimals: 6,
+    },
+    wanUSDC: {
+      address: "0x52a9cea01c4cbdd669883e41758b8eb8e8e2b34b",
+      cToken: "0x1c6ad34e176f230f430a6e61b5088415482207e4",
+      decimals: 6,
+    },
+    wanXRP: {
+      address: "0xf665E0e3E75D16466345E1129530ec28839EfaEa",
+      cToken: "0xca379fc6cb94db3c68b83bad0e574030f97eae54",
+      decimals: 6,
+    },
+    wanBTC: {
+      address: "0x50c439B6d602297252505a6799d84eA5928bCFb6",
+      cToken: "0xaf96f49d92a1a4e7c9b77755364355aeee036ef5",
+      decimals: 8,
+    },
+    wanETH: {
+      address: "0xE3aE74D1518A76715aB4C7BeDF1af73893cd435A",
+      cToken: "0x2411acd51122a43277d1bd8b63c478b815ae9ede",
+      decimals: 18,
+    },
+    WASP: {
+      address: "0x8b9f9f4aa70b1b0d586be8adfb19c1ac38e05e9a",
+      cToken: "0x0492d201b58f748f2f2c64777bd235ff7cd3e1d5",
+      decimals: 18,
+    },
+    wanLINK: {
+      address: "0x06da85475f9d2ae79af300de474968cd5a4fde61",
+      cToken: "0x3dd82c1b370e1bcb8eaebb4a4c81ebbbe2eb02c5",
+      decimals: 18,
+    },
+    wanUNI: {
+      address: "0x73eaa7431b11b1e7a7d5310de470de09883529df",
+      cToken: "0x30558274e9739e8006ebddb359ae64e691747e40",
+      decimals: 18,
+    },
+    FNX: {
+      address: "0xc6f4465a6a521124c8e3096b62575c157999d361",
+      cToken: "0xe2cb1756bd27fca11569513de67e203e929c591e",
+      decimals: 18,
+    },
+  },
+  v2: {
     wanUSDT: {
       address: "0x11e77E27Af5539872efEd10abaA0b408cfd9fBBD",
       cToken: "0x86d6aa06b2649a68b59cd76e0195dbd26c5c6c48",
@@ -83,54 +131,11 @@ const allTokenV2: any = {
       decimals: 18,
     },
   },
-};
-
-const allTokenV1: any = {
-  wanchain: {
-    wanUSDT: {
-      address: "0x11e77E27Af5539872efEd10abaA0b408cfd9fBBD",
-      cToken: "0xff39b35474c83f2552b0463d664dd12da5d083cf",
+  moonriver: {
+    USDCm: {
+      address: "0x748134b5F553F2bcBD78c6826De99a70274bDEb3",
+      cToken: "0x809eD65E30500cdFFfE4e25B8d3019DEE21230cc",
       decimals: 6,
-    },
-    wanUSDC: {
-      address: "0x52a9cea01c4cbdd669883e41758b8eb8e8e2b34b",
-      cToken: "0x1c6ad34e176f230f430a6e61b5088415482207e4",
-      decimals: 6,
-    },
-    wanXRP: {
-      address: "0xf665E0e3E75D16466345E1129530ec28839EfaEa",
-      cToken: "0xca379fc6cb94db3c68b83bad0e574030f97eae54",
-      decimals: 6,
-    },
-    wanBTC: {
-      address: "0x50c439B6d602297252505a6799d84eA5928bCFb6",
-      cToken: "0xaf96f49d92a1a4e7c9b77755364355aeee036ef5",
-      decimals: 8,
-    },
-    wanETH: {
-      address: "0xE3aE74D1518A76715aB4C7BeDF1af73893cd435A",
-      cToken: "0x2411acd51122a43277d1bd8b63c478b815ae9ede",
-      decimals: 18,
-    },
-    WASP: {
-      address: "0x8b9f9f4aa70b1b0d586be8adfb19c1ac38e05e9a",
-      cToken: "0x0492d201b58f748f2f2c64777bd235ff7cd3e1d5",
-      decimals: 18,
-    },
-    wanLINK: {
-      address: "0x06da85475f9d2ae79af300de474968cd5a4fde61",
-      cToken: "0x3dd82c1b370e1bcb8eaebb4a4c81ebbbe2eb02c5",
-      decimals: 18,
-    },
-    wanUNI: {
-      address: "0x73eaa7431b11b1e7a7d5310de470de09883529df",
-      cToken: "0x30558274e9739e8006ebddb359ae64e691747e40",
-      decimals: 18,
-    },
-    FNX: {
-      address: "0xc6f4465a6a521124c8e3096b62575c157999d361",
-      cToken: "0xe2cb1756bd27fca11569513de67e203e929c591e",
-      decimals: 18,
     },
   },
 };
@@ -163,7 +168,7 @@ export default function IndexPage() {
   const [actionValue, setAction] = useState("liquidate");
   const [versionValue, setVersion] = useState("v2");
   const [repayChecked, setCross] = useState(false);
-  const [tokens, setTokens] = useState(allTokenV2["wanchain"]);
+  const [tokens, setTokens] = useState(allToken["v2"]);
   const [form] = Form.useForm();
 
   // useEffect(() => {
@@ -193,8 +198,10 @@ export default function IndexPage() {
 
   function onSelectChain(item: string) {
     setChain(item);
-    setTokens(allTokenV2[item]);
-    form.setFieldsValue({ token: "" });
+    form.setFieldsValue({ payToken: "" });
+    form.setFieldsValue({ backToken: "" });
+    form.setFieldsValue({ borrower: "" });
+    form.setFieldsValue({ amount: "" });
   }
   async function getFee(coinType: string) {
     let request = `v1/${coinType.toLowerCase()}/main`;
@@ -218,7 +225,9 @@ export default function IndexPage() {
 
     const cTokenSc = new web3.eth.Contract(reservedAbi, RESERVED_CONTRACT);
     console.log("Try to get reserved fund...");
-    tx = await cTokenSc.methods.withdrawReserves(cToken, amountWei).send({ from: address, gas: GAS_LIMIT });
+    tx = await cTokenSc.methods
+      .withdrawReserves(cToken, amountWei)
+      .send({ from: address, gas: GAS_LIMIT });
     console.log("tx:", tx);
   }
 
@@ -241,25 +250,35 @@ export default function IndexPage() {
         console.log(payToken, payCToken, cTokenSupply, borrower, amount);
         console.log("type of amount", typeof amount);
 
-        let amountWei = new BigNumber(amount).times(10 ** decimals).toString(10);
+        let amountWei = new BigNumber(amount)
+          .times(10 ** decimals)
+          .toString(10);
         console.log("type of amount", typeof amountWei, amountWei);
 
         let tx: any;
 
         const erc20Sc = new web3.eth.Contract(erc20Abi, payToken);
-        let approved = await erc20Sc.methods.allowance(address, payCToken).call();
+        let approved = await erc20Sc.methods
+          .allowance(address, payCToken)
+          .call();
         console.log("approved", approved);
         if (BigNumber(approved).eq(0)) {
           console.log("Try to approve...");
-          tx = await erc20Sc.methods.approve(payCToken, approveAmount).send({ from: address });
+          tx = await erc20Sc.methods
+            .approve(payCToken, approveAmount)
+            .send({ from: address });
         }
         const cTokenSc = new web3.eth.Contract(cTokenAbi, payCToken);
         if (actionValue === "liquidate") {
           console.log("Try to liquidate...");
-          tx = await cTokenSc.methods.liquidateBorrow(borrower, amountWei, cTokenSupply).send({ from: address, gas: GAS_LIMIT });
+          tx = await cTokenSc.methods
+            .liquidateBorrow(borrower, amountWei, cTokenSupply)
+            .send({ from: address, gas: GAS_LIMIT });
         } else if (actionValue === "repay") {
           console.log("Try to repay...");
-          tx = await cTokenSc.methods.repayBorrowBehalf(borrower, amountWei).send({ from: address, gas: GAS_LIMIT });
+          tx = await cTokenSc.methods
+            .repayBorrowBehalf(borrower, amountWei)
+            .send({ from: address, gas: GAS_LIMIT });
         }
         console.log("tx:", tx);
       }
@@ -303,10 +322,13 @@ export default function IndexPage() {
   function versionChange(e: RadioChangeEvent) {
     console.log("version checked", e.target.value);
     setVersion(e.target.value);
+    onSelectChain(e.target.value);
     if (e.target.value === "v1") {
-      setTokens(allTokenV1["wanchain"]);
+      setTokens(allToken["v1"]);
+    } else if (e.target.value === "moonriver") {
+      setTokens(allToken["moonriver"]);
     } else {
-      setTokens(allTokenV2["wanchain"]);
+      setTokens(allToken["v2"]);
     }
   }
 
@@ -314,7 +336,9 @@ export default function IndexPage() {
     <div className={styles.frame}>
       <div className={styles["normal-head"]}>
         <Button type="primary" className={styles.wallet} onClick={onConnect}>
-          {!connected ? "Connect Wallet" : address.slice(0, 6) + "..." + address.slice(-4)}
+          {!connected
+            ? "Connect Wallet"
+            : address.slice(0, 6) + "..." + address.slice(-4)}
         </Button>
       </div>
 
@@ -338,6 +362,7 @@ export default function IndexPage() {
               <Radio.Group onChange={versionChange} value={versionValue}>
                 <Radio value={"v1"}>V1</Radio>
                 <Radio value={"v2"}>V2</Radio>
+                <Radio value={"moonriver"}>Moonriver</Radio>
               </Radio.Group>
             </Item>
           </div>
@@ -351,22 +376,46 @@ export default function IndexPage() {
             </Item>
           </div>
           {actionValue !== "reserve" ? (
-            <Item label="Repay" name="payToken" rules={[{ required: true, message: "Please select token to pay" }]}>
-              <Select showSearch options={getTokenList("wanchain")} onSelect={onSelectPayToken}></Select>
+            <Item
+              label="Repay"
+              name="payToken"
+              rules={[
+                { required: true, message: "Please select token to pay" },
+              ]}
+            >
+              <Select
+                showSearch
+                options={getTokenList("wanchain")}
+                onSelect={onSelectPayToken}
+              ></Select>
             </Item>
           ) : (
             ""
           )}
 
           {actionValue === "liquidate" ? (
-            <Item label="Collateral" name="backToken" rules={[{ required: true, message: "Please select token to get back" }]}>
-              <Select showSearch options={getTokenList("wanchain")} onSelect={onSelectBackToken}></Select>
+            <Item
+              label="Collateral"
+              name="backToken"
+              rules={[
+                { required: true, message: "Please select token to get back" },
+              ]}
+            >
+              <Select
+                showSearch
+                options={getTokenList("wanchain")}
+                onSelect={onSelectBackToken}
+              ></Select>
             </Item>
           ) : (
             ""
           )}
           {actionValue !== "reserve" ? (
-            <Item label="Borrower" name="borrower" rules={[{ required: true, message: "The borrower to liquidate" }]}>
+            <Item
+              label="Borrower"
+              name="borrower"
+              rules={[{ required: true, message: "The borrower to liquidate" }]}
+            >
               <Input />
             </Item>
           ) : (
@@ -374,14 +423,28 @@ export default function IndexPage() {
           )}
 
           {actionValue === "reserve" ? (
-            <Item label="Token" name="reserveToken" rules={[{ required: true, message: "Please select token to get" }]}>
-              <Select showSearch options={getTokenList("wanchain")} onSelect={onSelectReservedToken}></Select>
+            <Item
+              label="Token"
+              name="reserveToken"
+              rules={[
+                { required: true, message: "Please select token to get" },
+              ]}
+            >
+              <Select
+                showSearch
+                options={getTokenList("wanchain")}
+                onSelect={onSelectReservedToken}
+              ></Select>
             </Item>
           ) : (
             ""
           )}
 
-          <Item label="Amount" name="amount" rules={[{ required: true, message: "Please input amount to pay" }]}>
+          <Item
+            label="Amount"
+            name="amount"
+            rules={[{ required: true, message: "Please input amount to pay" }]}
+          >
             <Input />
           </Item>
 
@@ -392,7 +455,15 @@ export default function IndexPage() {
               span: 16,
             }}
           >
-            <Button type="primary" htmlType="submit" disabled={!connected || (chain === "wanchain" && networkId !== WANCHAIN_MAIN_NET) || (chain === "moonriver" && networkId !== MOONRIVER_MAIN_NET)}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              disabled={
+                !connected ||
+                (chain === "wanchain" && networkId !== WANCHAIN_MAIN_NET) ||
+                (chain === "moonriver" && networkId !== MOONRIVER_MAIN_NET)
+              }
+            >
               Submit
             </Button>
           </Item>
